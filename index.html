@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0a0e2e">
+  <title>Va Banque</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:       #0a0e2e;
+      --navy-mid:   #111640;
+      --navy-light: #1a2260;
+      --gold:       #f0c040;
+      --gold-dark:  #c89a10;
+      --gold-light: #ffd966;
+      --white:      #ffffff;
+      --correct:    #2ecc71;
+      --wrong:      #e74c3c;
+      --gray:       #8899bb;
+      --cell-bg:    #0d1550;
+      --cell-border:#2a3580;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: 'Lato', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── SCREEN MANAGEMENT ─────────────────────────────── */
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* ─── STARS BACKGROUND ──────────────────────────────── */
+    .stars-bg {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(26,34,96,0.6) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(26,34,96,0.4) 0%, transparent 50%),
+        var(--navy);
+    }
+    .stars-bg::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 45%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 10%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 25%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 55%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(2px 2px at 90% 10%, rgba(240,192,64,0.4) 0%, transparent 100%),
+        radial-gradient(2px 2px at 5% 90%, rgba(240,192,64,0.3) 0%, transparent 100%);
+    }
+
+    /* ─── LOGO / TITLE ──────────────────────────────────── */
+    .logo {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      filter: drop-shadow(0 0 20px rgba(240,192,64,0.4));
+    }
+    .logo-sub {
+      font-family: 'Lato', sans-serif;
+      font-weight: 300;
+      font-size: 0.75rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-top: -4px;
+    }
+
+    /* ─── MENU SCREEN ───────────────────────────────────── */
+    #screen-menu {
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+    .menu-header { text-align: center; }
+    .menu-buttons { display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 320px; }
+
+    /* ─── BUTTONS ───────────────────────────────────────── */
+    .btn {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 0.9rem 1.5rem;
+      transition: all 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: var(--navy);
+      box-shadow: 0 4px 20px rgba(240,192,64,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(240,192,64,0.5); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--gold);
+      border: 1.5px solid var(--gold);
+      box-shadow: inset 0 0 0 0 var(--gold);
+    }
+    .btn-secondary:hover { background: rgba(240,192,64,0.08); }
+    .btn-ghost {
+      background: rgba(255,255,255,0.05);
+      color: var(--gray);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+    .btn-sm { font-size: 0.8rem; padding: 0.5rem 1rem; }
+    .btn-icon { font-size: 1.1em; margin-right: 0.4em; }
+
+    /* ─── PANELS / CARDS ────────────────────────────────── */
+    .panel {
+      background: var(--navy-mid);
+      border: 1px solid var(--cell-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    /* ─── FORM ──────────────────────────────────────────── */
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+    .form-group label {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray);
+    }
+    .form-group input {
+      background: var(--navy-light);
+      border: 1px solid var(--cell-border);
+      border-radius: 4px;
+      color: var(--white);
+      font-family: 'Lato', sans-serif;
+      font-size: 1rem;
+      padding: 0.7rem 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: var(--gold); }
+    .form-group input::placeholder { color: var(--gray); opacity: 0.5; }
+
+    /* ─── NEW GAME SCREEN ───────────────────────────────── */
+    #screen-newgame {
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2rem 1.5rem;
+      gap: 1.5rem;
+      position: relative; z-index: 1;
+    }
+    #screen-newgame .panel { width: 100%; max-width: 400px; }
+    .screen-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    /* ─── CATEGORIES SCREEN ─────────────────────────────── */
+    #screen-categories {
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2rem 1.5rem;
+      gap: 1.5rem;
+      position: relative; z-index: 1;
+    }
+    #screen-categories .panel { width: 100%; max-width: 400px; }
+    .categories-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    /* ─── GAME BOARD SCREEN ─────────────────────────────── */
+    #screen-board {
+      flex-direction: column;
+      padding: 0.5rem;
+      position: relative; z-index: 1;
+      justify-content: flex-start;
+    }
+
+    .board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0.5rem 0.3rem;
+      flex-shrink: 0;
+    }
+    .board-round-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    .board-episode {
+      font-size: 0.75rem;
+      color: var(--gray);
+      letter-spacing: 0.1em;
+    }
+    .board-score {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      color: var(--gold-light);
+    }
+
+    /* The board table */
+    .board-container {
+      flex: 1;
+      overflow: auto;
+    }
+    .board-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 3px;
+      table-layout: fixed;
+    }
+    .board-table th {
+      background: linear-gradient(180deg, #1e2d80 0%, #131e60 100%);
+      border: 1px solid var(--cell-border);
+      border-radius: 4px;
+      color: var(--white);
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(0.55rem, 1.8vw, 0.85rem);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      padding: 0.5rem 0.3rem;
+      text-align: center;
+      text-transform: uppercase;
+      vertical-align: middle;
+      line-height: 1.2;
+    }
+    .board-cell {
+      background: linear-gradient(180deg, #1630c8 0%, #0e22a0 100%);
+      border: 1px solid #2a3cc0;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(0.9rem, 3vw, 1.4rem);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 0.5rem 0.2rem;
+      text-align: center;
+      vertical-align: middle;
+      transition: transform 0.1s ease, background 0.15s ease;
+      user-select: none;
+      color: var(--gold);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      position: relative;
+    }
+    .board-cell:active { transform: scale(0.94); }
+    .board-cell.state-correct {
+      background: linear-gradient(180deg, #27ae60 0%, #1a8a47 100%);
+      border-color: #2ecc71;
+      color: white;
+      font-size: clamp(1.1rem, 3.5vw, 1.8rem);
+    }
+    .board-cell.state-wrong {
+      background: linear-gradient(180deg, #c0392b 0%, #962d22 100%);
+      border-color: #e74c3c;
+      color: white;
+      font-size: clamp(1.1rem, 3.5vw, 1.8rem);
+    }
+    .board-cell .amount-label { font-size: clamp(0.65rem, 2vw, 1rem); }
+
+    /* ─── ROUND END STATS ───────────────────────────────── */
+    #screen-roundend {
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      gap: 1.5rem;
+      position: relative; z-index: 1;
+    }
+    .stats-panel {
+      background: var(--navy-mid);
+      border: 1px solid var(--gold-dark);
+      border-radius: 8px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+    .stats-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.2rem;
+      color: var(--gold);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.95rem;
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: var(--gray); }
+    .stat-value {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      color: var(--white);
+      font-weight: 600;
+    }
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.green { color: var(--correct); }
+    .accuracy-bar {
+      margin: 1.5rem 0;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .accuracy-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+    .accuracy-pct {
+      font-family: 'Oswald', sans-serif;
+      font-size: 2.5rem;
+      color: var(--gold);
+      font-weight: 700;
+      margin: 0.5rem 0;
+    }
+
+    /* ─── FINAL QUESTION MODAL ──────────────────────────── */
+    #screen-final {
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      gap: 1.5rem;
+      position: relative; z-index: 1;
+    }
+    .final-panel {
+      background: var(--navy-mid);
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .final-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 0.5rem;
+    }
+    .final-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 2rem;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+    .final-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .final-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1.5rem 1rem;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.04);
+      color: var(--gray);
+    }
+    .final-btn .final-icon { font-size: 2.5rem; }
+    .final-btn:hover { background: rgba(255,255,255,0.08); color: var(--white); }
+    .final-btn.selected-correct {
+      background: rgba(46,204,113,0.15);
+      border-color: var(--correct);
+      color: var(--correct);
+    }
+    .final-btn.selected-wrong {
+      background: rgba(231,76,60,0.15);
+      border-color: var(--wrong);
+      color: var(--wrong);
+    }
+
+    /* ─── GAME END STATS ────────────────────────────────── */
+    #screen-gameend {
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2rem 1.5rem;
+      gap: 1.5rem;
+      position: relative; z-index: 1;
+      overflow-y: auto;
+    }
+    .gameend-header { text-align: center; }
+    .gameend-total {
+      font-family: 'Oswald', sans-serif;
+      font-size: 3rem;
+      color: var(--gold);
+      font-weight: 700;
+      line-height: 1;
+    }
+    .gameend-total-label {
+      font-size: 0.75rem;
+      color: var(--gray);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-top: 0.3rem;
+    }
+    .round-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      width: 100%;
+      max-width: 400px;
+    }
+    .round-card {
+      background: var(--navy-mid);
+      border: 1px solid var(--cell-border);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .round-card-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .round-card-value {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .round-card-sub {
+      font-size: 0.7rem;
+      color: var(--gray);
+      margin-top: 0.2rem;
+    }
+    .final-result-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--navy-mid);
+      border: 1px solid var(--cell-border);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .final-result-icon { font-size: 2rem; }
+    .final-result-text { flex: 1; }
+    .final-result-label {
+      font-size: 0.7rem;
+      color: var(--gray);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .final-result-val {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      color: var(--white);
+      margin-top: 0.15rem;
+    }
+
+    /* ─── HISTORY SCREEN ────────────────────────────────── */
+    #screen-history {
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2rem 1.5rem;
+      gap: 1rem;
+      position: relative; z-index: 1;
+      overflow-y: auto;
+    }
+    .history-list { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 0.75rem; }
+    .history-item {
+      background: var(--navy-mid);
+      border: 1px solid var(--cell-border);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .history-item:hover { border-color: var(--gold-dark); background: rgba(240,192,64,0.05); }
+    .history-item.incomplete { border-left: 3px solid var(--gold-dark); }
+    .history-episode {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      color: var(--white);
+    }
+    .history-date { font-size: 0.75rem; color: var(--gray); margin-top: 0.2rem; }
+    .history-meta { text-align: right; }
+    .history-score {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      color: var(--gold);
+    }
+    .history-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      margin-top: 0.25rem;
+    }
+    .badge-complete { background: rgba(46,204,113,0.15); color: var(--correct); }
+    .badge-incomplete { background: rgba(240,192,64,0.15); color: var(--gold); }
+    .empty-state {
+      text-align: center;
+      color: var(--gray);
+      font-size: 0.9rem;
+      padding: 2rem;
+    }
+
+    /* ─── GLOBAL STATS SCREEN ───────────────────────────── */
+    #screen-globalstats {
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2rem 1.5rem;
+      gap: 1.5rem;
+      position: relative; z-index: 1;
+      overflow-y: auto;
+    }
+    .global-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      width: 100%;
+      max-width: 420px;
+    }
+    .global-card {
+      background: var(--navy-mid);
+      border: 1px solid var(--cell-border);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .global-card.full { grid-column: 1 / -1; }
+    .global-card-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 0.4rem;
+    }
+    .global-card-value {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .global-card-sub { font-size: 0.7rem; color: var(--gray); margin-top: 0.2rem; }
+
+    /* ─── GAME DETAIL SCREEN ────────────────────────────── */
+    #screen-gamedetail {
+      align-items: center;
+      justify-content: flex-start;
+      padding: 2rem 1.5rem;
+      gap: 1.5rem;
+      position: relative; z-index: 1;
+      overflow-y: auto;
+    }
+
+    /* ─── BACK BUTTON ───────────────────────────────────── */
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--gold);
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 0.4rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      align-self: flex-start;
+    }
+    .back-btn:hover { color: var(--gold-light); }
+
+    /* ─── TOAST ─────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(3rem);
+      background: var(--navy-light);
+      border: 1px solid var(--gold-dark);
+      color: var(--white);
+      font-size: 0.85rem;
+      padding: 0.7rem 1.4rem;
+      border-radius: 6px;
+      z-index: 1000;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* ─── CONFIRM MODAL ──────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: var(--navy-mid);
+      border: 1px solid var(--gold-dark);
+      border-radius: 10px;
+      padding: 1.8rem;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+    }
+    .modal-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .modal-text { font-size: 0.9rem; color: var(--gray); margin-bottom: 1.5rem; line-height: 1.5; }
+    .modal-actions { display: flex; gap: 0.75rem; }
+    .modal-actions .btn { flex: 1; }
+
+    /* ─── PROGRESS DOTS ─────────────────────────────────── */
+    .progress-dots {
+      display: flex;
+      gap: 0.4rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 0.5rem 0;
+    }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+    }
+    .dot.answered-correct { background: var(--correct); }
+    .dot.answered-wrong { background: var(--wrong); }
+    .dot.answered-none { background: rgba(255,255,255,0.1); }
+
+    /* ─── RESPONSIVE ────────────────────────────────────── */
+    @media (max-height: 600px) {
+      .board-header { padding: 0.3rem 0.5rem; }
+      .board-table { border-spacing: 2px; }
+      .board-cell { padding: 0.3rem 0.2rem; }
+    }
+
+    @media (min-width: 600px) {
+      .board-table th { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="stars-bg"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MENU
+═══════════════════════════════════════════════════════ -->
+<div id="screen-menu" class="screen active">
+  <div class="menu-header">
+    <div class="logo">Va Banque</div>
+    <div class="logo-sub">Twój dziennik gry</div>
+  </div>
+  <div class="menu-buttons">
+    <button class="btn btn-primary" onclick="showNewGame()">
+      <span class="btn-icon">➕</span> Nowa gra
+    </button>
+    <button class="btn btn-secondary" id="btn-continue" onclick="showHistory('incomplete')" style="display:none">
+      <span class="btn-icon">▶</span> Kontynuuj grę
+    </button>
+    <button class="btn btn-ghost" onclick="showHistory('all')">
+      <span class="btn-icon">📋</span> Historia gier
+    </button>
+    <button class="btn btn-ghost" onclick="showGlobalStats()">
+      <span class="btn-icon">📊</span> Statystyki całkowite
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     NEW GAME
+═══════════════════════════════════════════════════════ -->
+<div id="screen-newgame" class="screen">
+  <button class="back-btn" onclick="showMenu()">← Wstecz</button>
+  <div class="screen-title">Nowa gra</div>
+  <div class="panel">
+    <div class="form-group">
+      <label>Numer odcinka</label>
+      <input type="number" id="input-episode" placeholder="np. 312" min="1">
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="startNewGame()">
+      Utwórz grę →
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     CATEGORIES INPUT
+═══════════════════════════════════════════════════════ -->
+<div id="screen-categories" class="screen">
+  <button class="back-btn" id="cat-back-btn">← Wstecz</button>
+  <div class="screen-title" id="cat-title">Runda 1 — Kategorie</div>
+  <div class="panel">
+    <div class="categories-grid" id="cat-inputs"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:1rem" onclick="startRound()">
+      Rozpocznij rundę →
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     GAME BOARD
+═══════════════════════════════════════════════════════ -->
+<div id="screen-board" class="screen">
+  <div class="board-header">
+    <div>
+      <div class="board-round-label" id="board-round-label">Runda 1</div>
+      <div class="board-episode" id="board-episode-label"></div>
+    </div>
+    <div class="board-score" id="board-score-label">0 zł</div>
+  </div>
+  <div class="board-container">
+    <table class="board-table" id="board-table"></table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     ROUND END
+═══════════════════════════════════════════════════════ -->
+<div id="screen-roundend" class="screen">
+  <div class="stats-panel">
+    <div class="stats-title" id="roundend-title">Koniec Rundy 1</div>
+    <div class="accuracy-pct" id="roundend-pct">0%</div>
+    <div class="accuracy-bar"><div class="accuracy-fill" id="roundend-bar" style="width:0%"></div></div>
+    <div class="stat-row"><span class="stat-label">Poprawne odpowiedzi</span><span class="stat-value green" id="roundend-correct">0 / 30</span></div>
+    <div class="stat-row"><span class="stat-label">Kwota zdobyta</span><span class="stat-value gold" id="roundend-amount">0 zł</span></div>
+    <div class="progress-dots" id="roundend-dots"></div>
+  </div>
+  <button class="btn btn-primary" id="roundend-next-btn" onclick="nextAfterRound()">
+    Dalej →
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FINAL QUESTION
+═══════════════════════════════════════════════════════ -->
+<div id="screen-final" class="screen">
+  <div class="final-panel">
+    <div class="final-label">Runda finałowa</div>
+    <div class="final-title">Pytanie finałowe</div>
+    <div style="font-size:0.85rem;color:var(--gray);margin-bottom:1.5rem">Czy odpowiedziałeś poprawnie?</div>
+    <div class="final-buttons">
+      <button class="final-btn" id="final-btn-correct" onclick="setFinalAnswer(true)">
+        <span class="final-icon">✅</span>
+        <span>Tak</span>
+      </button>
+      <button class="final-btn" id="final-btn-wrong" onclick="setFinalAnswer(false)">
+        <span class="final-icon">❌</span>
+        <span>Nie</span>
+      </button>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:1.5rem" onclick="finishGame()" id="final-submit-btn" disabled>
+      Zakończ grę →
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     GAME END
+═══════════════════════════════════════════════════════ -->
+<div id="screen-gameend" class="screen">
+  <div class="gameend-header">
+    <div class="logo" style="font-size:2rem">Va Banque</div>
+    <div class="gameend-total" id="gameend-total">0 zł</div>
+    <div class="gameend-total-label">Łączna kwota zdobyta</div>
+  </div>
+  <div class="round-stats-grid">
+    <div class="round-card">
+      <div class="round-card-title">Runda 1</div>
+      <div class="round-card-value" id="ge-r1-correct">0/30</div>
+      <div class="round-card-sub" id="ge-r1-amount">0 zł</div>
+    </div>
+    <div class="round-card">
+      <div class="round-card-title">Runda 2</div>
+      <div class="round-card-value" id="ge-r2-correct">0/30</div>
+      <div class="round-card-sub" id="ge-r2-amount">0 zł</div>
+    </div>
+  </div>
+  <div class="final-result-card" id="ge-final-card">
+    <span class="final-result-icon" id="ge-final-icon">❓</span>
+    <div class="final-result-text">
+      <div class="final-result-label">Pytanie finałowe</div>
+      <div class="final-result-val" id="ge-final-val">—</div>
+    </div>
+  </div>
+  <div style="width:100%;max-width:400px;display:flex;flex-direction:column;gap:0.75rem">
+    <button class="btn btn-primary" onclick="showMenu()">Menu główne</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     HISTORY
+═══════════════════════════════════════════════════════ -->
+<div id="screen-history" class="screen">
+  <button class="back-btn" onclick="showMenu()">← Wstecz</button>
+  <div class="screen-title" id="history-title">Historia gier</div>
+  <div class="history-list" id="history-list"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     GAME DETAIL
+═══════════════════════════════════════════════════════ -->
+<div id="screen-gamedetail" class="screen">
+  <button class="back-btn" onclick="showHistory('all')">← Historia</button>
+  <div class="screen-title" id="detail-title">Odcinek #</div>
+  <div id="detail-content" style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:1rem"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     GLOBAL STATS
+═══════════════════════════════════════════════════════ -->
+<div id="screen-globalstats" class="screen">
+  <button class="back-btn" onclick="showMenu()">← Wstecz</button>
+  <div class="screen-title">Statystyki całkowite</div>
+  <div class="global-grid" id="global-grid"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     CONFIRM MODAL
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Potwierdź</div>
+    <div class="modal-text" id="modal-text">Czy na pewno?</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Anuluj</button>
+      <button class="btn btn-primary" id="modal-ok-btn">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════
+const AMOUNTS_R1 = [100, 200, 300, 400, 500];
+const AMOUNTS_R2 = [200, 400, 600, 800, 1000];
+const NUM_CATS = 6;
+const STORAGE_KEY = 'vabanque_games';
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let state = {
+  currentGameId: null,
+  currentRound: 1,   // 1 or 2
+  historyFilter: 'all'
+};
+
+// ═══════════════════════════════════════════════════════
+// STORAGE HELPERS
+// ═══════════════════════════════════════════════════════
+function loadGames() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+function saveGames(games) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+}
+function getGame(id) { return loadGames().find(g => g.id === id) || null; }
+function saveGame(game) {
+  const games = loadGames();
+  const idx = games.findIndex(g => g.id === game.id);
+  if (idx >= 0) games[idx] = game; else games.push(game);
+  saveGames(games);
+}
+
+// ═══════════════════════════════════════════════════════
+// SCREEN NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function showMenu() {
+  updateMenuButtons();
+  showScreen('menu');
+}
+
+function updateMenuButtons() {
+  const games = loadGames();
+  const incomplete = games.filter(g => g.status !== 'complete');
+  document.getElementById('btn-continue').style.display = incomplete.length ? 'block' : 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+// NEW GAME
+// ═══════════════════════════════════════════════════════
+function showNewGame() {
+  document.getElementById('input-episode').value = '';
+  showScreen('newgame');
+}
+
+function startNewGame() {
+  const epInput = document.getElementById('input-episode');
+  const ep = parseInt(epInput.value);
+  if (!ep || ep < 1) { showToast('Podaj numer odcinka'); return; }
+
+  const game = {
+    id: Date.now().toString(),
+    episode: ep,
+    createdAt: new Date().toISOString(),
+    status: 'r1-categories', // phases: r1-categories, r1-playing, r2-categories, r2-playing, final, complete
+    rounds: [
+      { categories: Array(NUM_CATS).fill(''), cells: Array(NUM_CATS).fill(null).map(() => Array(5).fill(0)) }, // 0=unanswered, 1=correct, -1=wrong
+      { categories: Array(NUM_CATS).fill(''), cells: Array(NUM_CATS).fill(null).map(() => Array(5).fill(0)) }
+    ],
+    finalAnswer: null // true/false/null
+  };
+  saveGame(game);
+  state.currentGameId = game.id;
+  state.currentRound = 1;
+  openCategories(game);
+}
+
+// ═══════════════════════════════════════════════════════
+// CATEGORIES
+// ═══════════════════════════════════════════════════════
+function openCategories(game) {
+  const round = game.status.startsWith('r1') ? 1 : 2;
+  state.currentRound = round;
+  document.getElementById('cat-title').textContent = `Runda ${round} — Kategorie`;
+
+  const backBtn = document.getElementById('cat-back-btn');
+  if (round === 1) {
+    backBtn.onclick = () => showMenu();
+  } else {
+    backBtn.onclick = () => showMenu();
+  }
+
+  const existing = game.rounds[round - 1].categories;
+  const container = document.getElementById('cat-inputs');
+  container.innerHTML = '';
+  for (let i = 0; i < NUM_CATS; i++) {
+    const div = document.createElement('div');
+    div.className = 'form-group';
+    div.innerHTML = `
+      <label>Kategoria ${i+1}</label>
+      <input type="text" id="cat-input-${i}" placeholder="Nazwa..." value="${existing[i] || ''}" maxlength="30">
+    `;
+    container.appendChild(div);
+  }
+  showScreen('categories');
+}
+
+function startRound() {
+  const game = getGame(state.currentGameId);
+  const round = state.currentRound;
+  const cats = [];
+  for (let i = 0; i < NUM_CATS; i++) {
+    cats.push(document.getElementById(`cat-input-${i}`).value.trim());
+  }
+  game.rounds[round - 1].categories = cats;
+  game.status = `r${round}-playing`;
+  saveGame(game);
+  renderBoard(game);
+}
+
+// ═══════════════════════════════════════════════════════
+// BOARD
+// ═══════════════════════════════════════════════════════
+function renderBoard(game) {
+  const round = state.currentRound;
+  const amounts = round === 1 ? AMOUNTS_R1 : AMOUNTS_R2;
+  const rd = game.rounds[round - 1];
+
+  document.getElementById('board-round-label').textContent = `Runda ${round}`;
+  document.getElementById('board-episode-label').textContent = `Odcinek #${game.episode}`;
+  updateBoardScore(game);
+
+  const table = document.getElementById('board-table');
+  table.innerHTML = '';
+
+  // Header row
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  for (let c = 0; c < NUM_CATS; c++) {
+    const th = document.createElement('th');
+    th.textContent = rd.categories[c] || `Kat. ${c+1}`;
+    headerRow.appendChild(th);
+  }
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Body rows (one row per amount)
+  const tbody = document.createElement('tbody');
+  for (let q = 0; q < 5; q++) {
+    const row = document.createElement('tr');
+    for (let c = 0; c < NUM_CATS; c++) {
+      const td = document.createElement('td');
+      td.className = 'board-cell';
+      td.dataset.cat = c;
+      td.dataset.q = q;
+      setCellState(td, rd.cells[c][q], amounts[q]);
+      td.addEventListener('click', () => onCellClick(c, q));
+      row.appendChild(td);
+    }
+    tbody.appendChild(row);
+  }
+  table.appendChild(tbody);
+  showScreen('board');
+}
+
+function setCellState(td, stateVal, amount) {
+  td.className = 'board-cell';
+  if (stateVal === 1) {
+    td.classList.add('state-correct');
+    td.textContent = '✓';
+  } else if (stateVal === -1) {
+    td.classList.add('state-wrong');
+    td.textContent = '✗';
+  } else {
+    td.innerHTML = `<span>${amount}</span><br><span class="amount-label">zł</span>`;
+  }
+}
+
+function onCellClick(cat, q) {
+  const game = getGame(state.currentGameId);
+  const round = state.currentRound;
+  const amounts = round === 1 ? AMOUNTS_R1 : AMOUNTS_R2;
+  const current = game.rounds[round - 1].cells[cat][q];
+
+  // Cycle: 0 → 1 → -1 → 0
+  let next;
+  if (current === 0) next = 1;
+  else if (current === 1) next = -1;
+  else next = 0;
+
+  game.rounds[round - 1].cells[cat][q] = next;
+  saveGame(game);
+
+  // Update cell in DOM
+  const td = document.querySelector(`.board-cell[data-cat="${cat}"][data-q="${q}"]`);
+  if (td) setCellState(td, next, amounts[q]);
+  updateBoardScore(game);
+  checkAllAnswered(game);
+}
+
+function updateBoardScore(game) {
+  const round = state.currentRound;
+  const amounts = round === 1 ? AMOUNTS_R1 : AMOUNTS_R2;
+  const rd = game.rounds[round - 1];
+  let total = 0;
+  for (let c = 0; c < NUM_CATS; c++) {
+    for (let q = 0; q < 5; q++) {
+      if (rd.cells[c][q] === 1) total += amounts[q];
+    }
+  }
+  document.getElementById('board-score-label').textContent = total.toLocaleString('pl-PL') + ' zł';
+}
+
+function checkAllAnswered(game) {
+  const round = state.currentRound;
+  const rd = game.rounds[round - 1];
+  const allAnswered = rd.cells.every(col => col.every(v => v !== 0));
+  if (allAnswered) {
+    setTimeout(() => showRoundEnd(game), 300);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// ROUND END
+// ═══════════════════════════════════════════════════════
+function showRoundEnd(game) {
+  const round = state.currentRound;
+  const amounts = round === 1 ? AMOUNTS_R1 : AMOUNTS_R2;
+  const rd = game.rounds[round - 1];
+
+  let correct = 0, total = 0, amount = 0;
+  const dots = [];
+  for (let q = 0; q < 5; q++) {
+    for (let c = 0; c < NUM_CATS; c++) {
+      total++;
+      const v = rd.cells[c][q];
+      if (v === 1) { correct++; amount += amounts[q]; dots.push('correct'); }
+      else if (v === -1) { dots.push('wrong'); }
+      else { dots.push('none'); }
+    }
+  }
+  const pct = Math.round((correct / total) * 100);
+
+  document.getElementById('roundend-title').textContent = `Koniec Rundy ${round}`;
+  document.getElementById('roundend-pct').textContent = pct + '%';
+  document.getElementById('roundend-bar').style.width = pct + '%';
+  document.getElementById('roundend-correct').textContent = `${correct} / ${total}`;
+  document.getElementById('roundend-amount').textContent = amount.toLocaleString('pl-PL') + ' zł';
+
+  const dotsEl = document.getElementById('roundend-dots');
+  dotsEl.innerHTML = dots.map(d => `<div class="dot answered-${d}"></div>`).join('');
+
+  const nextBtn = document.getElementById('roundend-next-btn');
+  if (round === 1) {
+    nextBtn.textContent = 'Runda 2 →';
+  } else {
+    nextBtn.textContent = 'Pytanie finałowe →';
+  }
+
+  showScreen('roundend');
+}
+
+function nextAfterRound() {
+  const game = getGame(state.currentGameId);
+  if (state.currentRound === 1) {
+    state.currentRound = 2;
+    game.status = 'r2-categories';
+    saveGame(game);
+    openCategories(game);
+  } else {
+    game.status = 'final';
+    saveGame(game);
+    showFinal();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// FINAL
+// ═══════════════════════════════════════════════════════
+let _finalAnswer = null;
+function showFinal() {
+  _finalAnswer = null;
+  document.getElementById('final-btn-correct').className = 'final-btn';
+  document.getElementById('final-btn-wrong').className = 'final-btn';
+  document.getElementById('final-submit-btn').disabled = true;
+  showScreen('final');
+}
+
+function setFinalAnswer(correct) {
+  _finalAnswer = correct;
+  document.getElementById('final-btn-correct').className = 'final-btn' + (correct ? ' selected-correct' : '');
+  document.getElementById('final-btn-wrong').className = 'final-btn' + (!correct ? ' selected-wrong' : '');
+  document.getElementById('final-submit-btn').disabled = false;
+}
+
+function finishGame() {
+  if (_finalAnswer === null) return;
+  const game = getGame(state.currentGameId);
+  game.finalAnswer = _finalAnswer;
+  game.status = 'complete';
+  game.completedAt = new Date().toISOString();
+  saveGame(game);
+  showGameEnd(game);
+}
+
+// ═══════════════════════════════════════════════════════
+// GAME END
+// ═══════════════════════════════════════════════════════
+function showGameEnd(game) {
+  const calcRound = (roundIdx, amounts) => {
+    const rd = game.rounds[roundIdx];
+    let correct = 0, amount = 0;
+    for (let c = 0; c < NUM_CATS; c++) {
+      for (let q = 0; q < 5; q++) {
+        if (rd.cells[c][q] === 1) { correct++; amount += amounts[q]; }
+      }
+    }
+    return { correct, amount };
+  };
+  const r1 = calcRound(0, AMOUNTS_R1);
+  const r2 = calcRound(1, AMOUNTS_R2);
+  const total = r1.amount + r2.amount;
+
+  document.getElementById('gameend-total').textContent = total.toLocaleString('pl-PL') + ' zł';
+  document.getElementById('ge-r1-correct').textContent = `${r1.correct}/30`;
+  document.getElementById('ge-r1-amount').textContent = r1.amount.toLocaleString('pl-PL') + ' zł';
+  document.getElementById('ge-r2-correct').textContent = `${r2.correct}/30`;
+  document.getElementById('ge-r2-amount').textContent = r2.amount.toLocaleString('pl-PL') + ' zł';
+
+  const finalIcon = document.getElementById('ge-final-icon');
+  const finalVal = document.getElementById('ge-final-val');
+  if (game.finalAnswer === true) {
+    finalIcon.textContent = '✅';
+    finalVal.textContent = 'Poprawna odpowiedź';
+    finalVal.style.color = 'var(--correct)';
+  } else if (game.finalAnswer === false) {
+    finalIcon.textContent = '❌';
+    finalVal.textContent = 'Błędna odpowiedź';
+    finalVal.style.color = 'var(--wrong)';
+  } else {
+    finalIcon.textContent = '❓';
+    finalVal.textContent = '—';
+    finalVal.style.color = '';
+  }
+
+  showScreen('gameend');
+}
+
+// ═══════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════
+function showHistory(filter) {
+  state.historyFilter = filter;
+  const games = loadGames();
+  let filtered = filter === 'incomplete'
+    ? games.filter(g => g.status !== 'complete')
+    : [...games];
+  filtered.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  document.getElementById('history-title').textContent =
+    filter === 'incomplete' ? 'Niedokończone gry' : 'Historia gier';
+
+  const list = document.getElementById('history-list');
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state">Brak gier do wyświetlenia</div>';
+  } else {
+    list.innerHTML = filtered.map(g => {
+      const date = new Date(g.createdAt).toLocaleDateString('pl-PL', {day:'2-digit',month:'2-digit',year:'numeric'});
+      const isComplete = g.status === 'complete';
+      const score = isComplete ? calcTotalAmount(g).toLocaleString('pl-PL') + ' zł' : statusLabel(g.status);
+      return `
+        <div class="history-item ${isComplete ? '' : 'incomplete'}" onclick="openGameDetail('${g.id}')">
+          <div>
+            <div class="history-episode">Odcinek #${g.episode}</div>
+            <div class="history-date">${date}</div>
+          </div>
+          <div class="history-meta">
+            <div class="history-score">${isComplete ? score : ''}</div>
+            <span class="history-badge ${isComplete ? 'badge-complete' : 'badge-incomplete'}">
+              ${isComplete ? 'Zakończona' : 'W toku'}
+            </span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  showScreen('history');
+}
+
+function statusLabel(status) {
+  if (status === 'r1-categories' || status === 'r1-playing') return 'Runda 1';
+  if (status === 'r2-categories' || status === 'r2-playing') return 'Runda 2';
+  if (status === 'final') return 'Finał';
+  return '';
+}
+
+function calcTotalAmount(game) {
+  let total = 0;
+  game.rounds[0].cells.forEach((col, c) => col.forEach((v, q) => { if (v === 1) total += AMOUNTS_R1[q]; }));
+  game.rounds[1].cells.forEach((col, c) => col.forEach((v, q) => { if (v === 1) total += AMOUNTS_R2[q]; }));
+  return total;
+}
+
+function openGameDetail(id) {
+  const game = getGame(id);
+  if (!game) return;
+
+  // If incomplete, resume the game
+  if (game.status !== 'complete') {
+    state.currentGameId = id;
+    resumeGame(game);
+    return;
+  }
+
+  // Show detail view
+  document.getElementById('detail-title').textContent = `Odcinek #${game.episode}`;
+  const content = document.getElementById('detail-content');
+
+  const r1 = calcRoundStats(game, 0, AMOUNTS_R1);
+  const r2 = calcRoundStats(game, 1, AMOUNTS_R2);
+  const total = r1.amount + r2.amount;
+
+  content.innerHTML = `
+    <div class="stats-panel" style="text-align:left">
+      <div class="stats-title" style="text-align:center;margin-bottom:1rem">Wynik końcowy</div>
+      <div style="text-align:center;margin-bottom:1rem">
+        <div class="accuracy-pct">${total.toLocaleString('pl-PL')} zł</div>
+        <div style="font-size:0.75rem;color:var(--gray);letter-spacing:0.2em">ŁĄCZNA KWOTA</div>
+      </div>
+      <div class="stat-row"><span class="stat-label">Runda 1 — poprawne</span><span class="stat-value green">${r1.correct}/30</span></div>
+      <div class="stat-row"><span class="stat-label">Runda 1 — kwota</span><span class="stat-value gold">${r1.amount.toLocaleString('pl-PL')} zł</span></div>
+      <div class="stat-row"><span class="stat-label">Runda 2 — poprawne</span><span class="stat-value green">${r2.correct}/30</span></div>
+      <div class="stat-row"><span class="stat-label">Runda 2 — kwota</span><span class="stat-value gold">${r2.amount.toLocaleString('pl-PL')} zł</span></div>
+      <div class="stat-row">
+        <span class="stat-label">Pytanie finałowe</span>
+        <span class="stat-value">${game.finalAnswer === true ? '✅ Tak' : game.finalAnswer === false ? '❌ Nie' : '—'}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="showHistory('all')">← Lista</button>
+      <button class="btn btn-secondary btn-sm" style="flex:1;color:var(--wrong);border-color:var(--wrong)" onclick="confirmDeleteGame('${game.id}')">🗑 Usuń</button>
+    </div>
+  `;
+
+  showScreen('gamedetail');
+}
+
+function calcRoundStats(game, roundIdx, amounts) {
+  let correct = 0, amount = 0;
+  game.rounds[roundIdx].cells.forEach((col, c) => col.forEach((v, q) => {
+    if (v === 1) { correct++; amount += amounts[q]; }
+  }));
+  return { correct, amount };
+}
+
+function resumeGame(game) {
+  state.currentGameId = game.id;
+  const s = game.status;
+  if (s === 'r1-categories') { state.currentRound = 1; openCategories(game); }
+  else if (s === 'r1-playing') { state.currentRound = 1; renderBoard(game); }
+  else if (s === 'r2-categories') { state.currentRound = 2; openCategories(game); }
+  else if (s === 'r2-playing') { state.currentRound = 2; renderBoard(game); }
+  else if (s === 'final') { showFinal(); }
+  else { showGameEnd(game); }
+}
+
+function confirmDeleteGame(id) {
+  document.getElementById('modal-title').textContent = 'Usuń grę';
+  document.getElementById('modal-text').textContent = 'Czy na pewno chcesz usunąć tę grę? Tej operacji nie można cofnąć.';
+  document.getElementById('modal-ok-btn').onclick = () => {
+    deleteGame(id);
+    closeModal();
+    showHistory('all');
+  };
+  document.getElementById('modal-confirm').classList.add('active');
+}
+
+function deleteGame(id) {
+  const games = loadGames().filter(g => g.id !== id);
+  saveGames(games);
+  showToast('Gra usunięta');
+}
+
+function closeModal() {
+  document.getElementById('modal-confirm').classList.remove('active');
+}
+
+// ═══════════════════════════════════════════════════════
+// GLOBAL STATS
+// ═══════════════════════════════════════════════════════
+function showGlobalStats() {
+  const games = loadGames().filter(g => g.status === 'complete');
+  const grid = document.getElementById('global-grid');
+
+  if (games.length === 0) {
+    grid.innerHTML = '<div class="global-card full"><div class="global-card-label">Brak zakończonych gier</div><div class="global-card-value">—</div></div>';
+    showScreen('globalstats');
+    return;
+  }
+
+  let totalGames = games.length;
+  let r1Correct = 0, r2Correct = 0;
+  const totalQ = games.length * 30;
+  let finalCorrect = 0;
+  let totalAmount = 0;
+
+  games.forEach(g => {
+    g.rounds[0].cells.forEach((col, c) => col.forEach((v, q) => { if (v === 1) { r1Correct++; totalAmount += AMOUNTS_R1[q]; } }));
+    g.rounds[1].cells.forEach((col, c) => col.forEach((v, q) => { if (v === 1) { r2Correct++; totalAmount += AMOUNTS_R2[q]; } }));
+    if (g.finalAnswer === true) finalCorrect++;
+  });
+
+  const totalCorrect = r1Correct + r2Correct;
+  const overallPct = Math.round((totalCorrect / (totalGames * 60)) * 100);
+  const r1Pct = Math.round((r1Correct / totalQ) * 100);
+  const r2Pct = Math.round((r2Correct / totalQ) * 100);
+  const finalPct = Math.round((finalCorrect / totalGames) * 100);
+
+  grid.innerHTML = `
+    <div class="global-card full">
+      <div class="global-card-label">Rozegrane gry</div>
+      <div class="global-card-value">${totalGames}</div>
+    </div>
+    <div class="global-card full">
+      <div class="global-card-label">Łączna kwota</div>
+      <div class="global-card-value" style="font-size:1.4rem">${totalAmount.toLocaleString('pl-PL')} zł</div>
+    </div>
+    <div class="global-card">
+      <div class="global-card-label">Skuteczność ogółem</div>
+      <div class="global-card-value">${overallPct}%</div>
+      <div class="global-card-sub">${totalCorrect} / ${totalGames * 60}</div>
+    </div>
+    <div class="global-card">
+      <div class="global-card-label">Pytania finałowe</div>
+      <div class="global-card-value">${finalPct}%</div>
+      <div class="global-card-sub">${finalCorrect} / ${totalGames}</div>
+    </div>
+    <div class="global-card">
+      <div class="global-card-label">Runda 1</div>
+      <div class="global-card-value">${r1Pct}%</div>
+      <div class="global-card-sub">${r1Correct} / ${totalQ} poprawnych</div>
+    </div>
+    <div class="global-card">
+      <div class="global-card-label">Runda 2</div>
+      <div class="global-card-value">${r2Pct}%</div>
+      <div class="global-card-sub">${r2Correct} / ${totalQ} poprawnych</div>
+    </div>
+  `;
+  showScreen('globalstats');
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+updateMenuButtons();
+</script>
+</body>
+</html>
