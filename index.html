@@ -270,7 +270,8 @@
       font-size: clamp(0.9rem, 3vw, 1.4rem);
       font-weight: 700;
       letter-spacing: 0.05em;
-      padding: 0.5rem 0.2rem;
+      padding: 0;
+      height: clamp(2.6rem, 8vw, 3.8rem);
       text-align: center;
       vertical-align: middle;
       transition: transform 0.1s ease, background 0.15s ease;
@@ -284,13 +285,11 @@
       background: linear-gradient(180deg, #27ae60 0%, #1a8a47 100%);
       border-color: #2ecc71;
       color: white;
-      font-size: clamp(1.1rem, 3.5vw, 1.8rem);
     }
     .board-cell.state-wrong {
       background: linear-gradient(180deg, #c0392b 0%, #962d22 100%);
       border-color: #e74c3c;
       color: white;
-      font-size: clamp(1.1rem, 3.5vw, 1.8rem);
     }
     .board-cell .amount-label { font-size: clamp(0.65rem, 2vw, 1rem); }
 
