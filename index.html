@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#0a0e2e">
   <title>Va Banque</title>
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --navy:       #0a0e2e;
@@ -64,11 +64,14 @@
 
     /* ─── LOGO / TITLE ──────────────────────────────────── */
     .logo {
-      font-family: 'Oswald', sans-serif;
-      font-weight: 700;
-      font-size: clamp(2.5rem, 8vw, 5rem);
-      letter-spacing: 0.08em;
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: clamp(3rem, 10vw, 6rem);
+      letter-spacing: 0.04em;
       text-transform: uppercase;
+      transform: scaleX(0.78);
+      transform-origin: center;
+      display: inline-block;
       background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -194,8 +197,8 @@
     }
     #screen-categories .panel { width: 100%; max-width: 400px; }
     .categories-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 0.75rem;
     }
 
@@ -780,6 +783,11 @@
   <div class="board-container">
     <table class="board-table" id="board-table"></table>
   </div>
+  <div style="padding:0.5rem;flex-shrink:0">
+    <button id="btn-finish-round" class="btn btn-primary" style="width:100%;display:none" onclick="onFinishRoundClick()">
+      Zakończ rundę →
+    </button>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
@@ -964,21 +972,39 @@ function showNewGame() {
   showScreen('newgame');
 }
 
+function onFinishRoundClick() {
+  const game = getGame(state.currentGameId);
+  showRoundEnd(game);
+}
+
 function startNewGame() {
   const epInput = document.getElementById('input-episode');
   const ep = parseInt(epInput.value);
   if (!ep || ep < 1) { showToast('Podaj numer odcinka'); return; }
 
+  const games = loadGames();
+  const duplicate = games.find(g => g.episode === ep);
+  if (duplicate) {
+    document.getElementById('modal-title').textContent = 'Odcinek już rozegrany';
+    document.getElementById('modal-text').textContent = `Odcinek #${ep} był już rozgrywany. Czy na pewno chcesz zagrać w niego ponownie?`;
+    document.getElementById('modal-ok-btn').onclick = () => { closeModal(); createGame(ep); };
+    document.getElementById('modal-confirm').classList.add('active');
+    return;
+  }
+  createGame(ep);
+}
+
+function createGame(ep) {
   const game = {
     id: Date.now().toString(),
     episode: ep,
     createdAt: new Date().toISOString(),
-    status: 'r1-categories', // phases: r1-categories, r1-playing, r2-categories, r2-playing, final, complete
+    status: 'r1-categories',
     rounds: [
-      { categories: Array(NUM_CATS).fill(''), cells: Array(NUM_CATS).fill(null).map(() => Array(5).fill(0)) }, // 0=unanswered, 1=correct, -1=wrong
+      { categories: Array(NUM_CATS).fill(''), cells: Array(NUM_CATS).fill(null).map(() => Array(5).fill(0)) },
       { categories: Array(NUM_CATS).fill(''), cells: Array(NUM_CATS).fill(null).map(() => Array(5).fill(0)) }
     ],
-    finalAnswer: null // true/false/null
+    finalAnswer: null
   };
   saveGame(game);
   state.currentGameId = game.id;
@@ -1040,6 +1066,9 @@ function renderBoard(game) {
   document.getElementById('board-round-label').textContent = `Runda ${round}`;
   document.getElementById('board-episode-label').textContent = `Odcinek #${game.episode}`;
   updateBoardScore(game);
+  // Reset finish button — show only when all answered
+  const finishBtn = document.getElementById('btn-finish-round');
+  if (finishBtn) finishBtn.style.display = 'none';
 
   const table = document.getElementById('board-table');
   table.innerHTML = '';
@@ -1072,6 +1101,7 @@ function renderBoard(game) {
   }
   table.appendChild(tbody);
   showScreen('board');
+  checkAllAnswered(game);
 }
 
 function setCellState(td, stateVal, amount) {
@@ -1083,7 +1113,7 @@ function setCellState(td, stateVal, amount) {
     td.classList.add('state-wrong');
     td.textContent = '✗';
   } else {
-    td.innerHTML = `<span>${amount}</span><br><span class="amount-label">zł</span>`;
+    td.innerHTML = `<span>${amount}</span>`;
   }
 }
 
@@ -1126,9 +1156,8 @@ function checkAllAnswered(game) {
   const round = state.currentRound;
   const rd = game.rounds[round - 1];
   const allAnswered = rd.cells.every(col => col.every(v => v !== 0));
-  if (allAnswered) {
-    setTimeout(() => showRoundEnd(game), 300);
-  }
+  const btn = document.getElementById('btn-finish-round');
+  if (btn) btn.style.display = allAnswered ? 'block' : 'none';
 }
 
 // ═══════════════════════════════════════════════════════
